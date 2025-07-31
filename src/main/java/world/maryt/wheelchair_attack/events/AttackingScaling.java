@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TextComponentTagVisitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
