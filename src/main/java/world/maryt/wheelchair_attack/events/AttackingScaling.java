@@ -15,10 +15,12 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import world.maryt.wheelchair.Config;
 
+import static world.maryt.wheelchair_attack.util.TagUtils.*;
+
 import java.util.ArrayList;
 
 public class AttackingScaling {
-    @SubscribeEvent
+        @SubscribeEvent
     public static void onLivingDamaged(LivingDamageEvent event) {
         LivingEntity target = event.getEntity();
         DamageSource source = event.getSource();
@@ -34,44 +36,46 @@ public class AttackingScaling {
 
         // Update the hit counter
         CompoundTag tag = target.getPersistentData();
-        if (!tag.contains("hitByPlayerCounter")) tag.putInt("hitByPlayerCounter", Config.mobShouldDieWithinThisAttacks - 1);
-        else {
-            int hitByPlayerCounter = tag.getInt("hitByPlayerCounter") - 1;
-            if (hitByPlayerCounter == 0) {
-                // Mob must be killed at this time
-                event.setAmount(Float.MAX_VALUE);
-            } else {
-                // Scaling mob's health and player's damage
+        int hitByPlayerCounter = getIntNonNull(tag, "hitByPlayerCounter", Config.mobShouldDieWithinThisAttacks);
 
-                // Store the damage for comparing
-                if (!tag.contains("maxDamage")) tag.putFloat("maxDamage", rawDamageAmount);
-                if (!tag.contains("minDamage")) tag.putFloat("minDamage", rawDamageAmount);
-                float maxDamage = tag.getFloat("maxDamage");
-                float minDamage = tag.getFloat("minDamage");
+        // Scaling mob's health and player's damage
 
-                if (rawDamageAmount > maxDamage) {
-                    tag.putFloat("maxDamage", rawDamageAmount);
+        // Store the damage for comparing
 
-                    // Scale the mob's health proportional to the damage
-                    float scaledHealth = rawDamageAmount * Config.mobShouldDieWithinThisAttacks;
-                    if (scaledHealth > target.getMaxHealth()) {
-                        Multimap<Attribute, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
-                        map.put(Attributes.MAX_HEALTH, new AttributeModifier("generic.max_health", scaledHealth - target.getMaxHealth(), AttributeModifier.Operation.ADDITION));
-                        target.getAttributes().addTransientAttributeModifiers(map);
-                    }
-                }
-                if (rawDamageAmount < minDamage) {
-                    tag.putFloat("minDamage", rawDamageAmount);
-                }
+        float maxDamage = getFloatNonNull(tag,"maxDamage", 0);
+        float minDamage = getFloatNonNull(tag,"minDamage", Float.MAX_VALUE);
 
-                // Cancel the raw damage
-                event.setAmount(0);
-                target.setHealth(target.getMaxHealth() * ((float) hitByPlayerCounter / Config.mobShouldDieWithinThisAttacks));
+        if (rawDamageAmount > maxDamage) {
+            tag.putFloat("maxDamage", rawDamageAmount);
 
-                // Debug info
-                player.sendSystemMessage(Component.nullToEmpty("Raw Damage: " + rawDamageAmount));
-            }
+            // Scale the mob's health proportional to the damage
+            float scaledHealth = rawDamageAmount * Config.mobShouldDieWithinThisAttacks;
+            if (scaledHealth > target.getMaxHealth()) scaleMobHealth(scaledHealth, target);
+        }
+        if (rawDamageAmount < minDamage) {
+            tag.putFloat("minDamage", rawDamageAmount);
         }
 
+        // Cancel the raw damage
+        event.setAmount(0);
+        target.setHealth(target.getMaxHealth() * ((float) hitByPlayerCounter / Config.mobShouldDieWithinThisAttacks));
+
+        int updateCounter = tag.getInt("hitByPlayerCounter") - 1;
+        tag.putInt("hitByPlayerCounter", updateCounter);
+
+        if (updateCounter == 0) {
+            // Mob must be killed at this time
+            event.setAmount(Float.MAX_VALUE);
+        }
+
+        // Debug info
+        player.sendSystemMessage(Component.nullToEmpty("Raw Damage: " + rawDamageAmount));
+        player.sendSystemMessage(Component.nullToEmpty("Have hit this mob for: " + tag.getInt("hitByPlayerCounter") + "/" + Config.mobShouldDieWithinThisAttacks));
+    }
+
+    private static void scaleMobHealth(float scaledHealth, LivingEntity target) {
+        Multimap<Attribute, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
+        map.put(Attributes.MAX_HEALTH, new AttributeModifier("generic.max_health", scaledHealth - target.getMaxHealth(), AttributeModifier.Operation.ADDITION));
+        target.getAttributes().addTransientAttributeModifiers(map);
     }
 }
