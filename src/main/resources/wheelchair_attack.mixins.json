@@ -1,0 +1,17 @@
+{
+  "required" : true,
+  "minVersion" : "0.8",
+  "package" : "world.maryt.wheelchair_attack.mixins",
+  "compatibilityLevel" : "JAVA_8",
+  "refmap" : "wheelchair_attack.refmap.json",
+  "mixins" : [
+  ],
+  "client" : [
+  ],
+  "injectors" : {
+    "defaultRequire" : 1
+  },
+  "overwrites" : {
+    "requireAnnotations" : true
+  }
+}
