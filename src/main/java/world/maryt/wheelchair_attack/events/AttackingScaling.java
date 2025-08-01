@@ -14,15 +14,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import world.maryt.wheelchair.Config;
+import world.maryt.wheelchair_attack.WheelchairAttack;
 
 import static world.maryt.wheelchair_attack.util.TagUtils.*;
+import static world.maryt.wheelchair_attack.Config.attackMergeTicks;
 
 import java.util.ArrayList;
 
 public class AttackingScaling {
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamaged(LivingDamageEvent event) {
+    public static void onLivingDamaged(@NotNull LivingDamageEvent event) {
         LivingEntity target = event.getEntity();
         DamageSource source = event.getSource();
         // Only apply for non-players
@@ -61,22 +64,41 @@ public class AttackingScaling {
         event.setAmount(0);
         target.setHealth(target.getMaxHealth() * ((float) hitByPlayerCounter / Config.mobShouldDieWithinThisAttacks));
 
-        int updateCounter = tag.getInt("hitByPlayerCounter") - 1;
-        tag.putInt("hitByPlayerCounter", updateCounter);
-
-        if (updateCounter == 0) {
-            // Mob must be killed at this time
-            event.setAmount(Float.MAX_VALUE);
+        // Attack merge
+        if (attackMergeTicks <= 0 || target.tickCount - target.getLastHurtByMobTimestamp() <= attackMergeTicks) {
+            debugInfo(player, tag, target.tickCount, target.getLastHurtByMobTimestamp());
+        } else {
+            tag.putInt("hitByPlayerCounter", tag.getInt("hitByPlayerCounter") - 1);
+            debugInfo(player, rawDamageAmount, tag);
         }
 
-        // Debug info
-        player.sendSystemMessage(Component.nullToEmpty("Raw Damage: " + rawDamageAmount));
-        player.sendSystemMessage(Component.nullToEmpty("Have hit this mob for: " + tag.getInt("hitByPlayerCounter") + "/" + Config.mobShouldDieWithinThisAttacks));
+        if (tag.getInt("hitByPlayerCounter") == 0) {
+            // Mob must be killed at this time
+            event.setAmount(Float.MAX_VALUE);
+            debugInfo(player);
+        }
     }
 
-    private static void scaleMobHealth(float scaledHealth, LivingEntity target) {
+    private static void scaleMobHealth(float scaledHealth, @NotNull LivingEntity target) {
         Multimap<Attribute, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
         map.put(Attributes.MAX_HEALTH, new AttributeModifier("generic.max_health", scaledHealth - target.getMaxHealth(), AttributeModifier.Operation.ADDITION));
         target.getAttributes().addTransientAttributeModifiers(map);
+    }
+
+    // Force kill
+    private static void debugInfo(@NotNull Player player) {
+        if (WheelchairAttack.DEBUG) player.sendSystemMessage(Component.nullToEmpty("Enemy has been forced to be killed."));
+    }
+
+    private static void debugInfo(@NotNull Player player, float rawDamageAmount, @NotNull CompoundTag tag) {
+        if (WheelchairAttack.DEBUG) {
+            player.sendSystemMessage(Component.nullToEmpty("Raw Damage: " + rawDamageAmount));
+            player.sendSystemMessage(Component.nullToEmpty("Have hit this mob for: " + tag.getInt("hitByPlayerCounter") + "/" + Config.mobShouldDieWithinThisAttacks));
+        }
+    }
+
+    private static void debugInfo(@NotNull Player player, @NotNull CompoundTag tag, int tickCount, int lastHurtByMobTimestamp) {
+        // Debug info when merged
+        if (WheelchairAttack.DEBUG) player.sendSystemMessage(Component.nullToEmpty(tickCount + "-" + lastHurtByMobTimestamp + "<=" + attackMergeTicks + ", Attack is merged. Have hit this mob for: " + tag.getInt("hitByPlayerCounter") + "/" + Config.mobShouldDieWithinThisAttacks));
     }
 }

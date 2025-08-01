@@ -19,6 +19,9 @@ import world.maryt.wheelchair_attack.events.AttackingScaling;
 public class WheelchairAttack {
     public static final String MOD_ID = "wheelchair_attack";
     private static final Logger LOGGER = LogUtils.getLogger();
+    // Only used in modding env.
+    public static final boolean DEBUG = false;
+
     @SuppressWarnings("removal")
     public WheelchairAttack() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
