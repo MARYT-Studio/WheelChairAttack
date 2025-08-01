@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import world.maryt.wheelchair.Config;
 
@@ -20,7 +21,7 @@ import static world.maryt.wheelchair_attack.util.TagUtils.*;
 import java.util.ArrayList;
 
 public class AttackingScaling {
-        @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingDamaged(LivingDamageEvent event) {
         LivingEntity target = event.getEntity();
         DamageSource source = event.getSource();
