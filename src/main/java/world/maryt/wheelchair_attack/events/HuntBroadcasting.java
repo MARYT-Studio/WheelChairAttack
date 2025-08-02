@@ -57,19 +57,19 @@ public class HuntBroadcasting {
     private static void broadCast(Player player, Component preyName, float preyHealth, double hunterDamage) {
         MinecraftServer serverLevel = player.getServer();
         if (serverLevel == null) {
-            player.sendSystemMessage(Component.translatable( "你刚刚击杀了血量上限高达%s的%s，造成的最高伤害已经达到%s！真是不可思议呀！", fixDigit(preyHealth), preyName ,fixDigit(hunterDamage)));
+            player.sendSystemMessage(Component.translatable( "broadcast.for_single_player.text", fixDigit(preyHealth), preyName ,fixDigit(hunterDamage)));
         }
         else {
             PlayerList playerList = serverLevel.getPlayerList();
             if (playerList.getPlayerCount() > 1) {
                 broadCast(player, playerList, preyName, preyHealth, hunterDamage);
-            } else player.sendSystemMessage(Component.translatable( "你刚刚击杀了血量上限高达%s的%s，造成的最高伤害已经达到%s！真是不可思议呀！", fixDigit(preyHealth), preyName ,fixDigit(hunterDamage)));
+            } else player.sendSystemMessage(Component.translatable( "broadcast.for_single_player.text", fixDigit(preyHealth), preyName ,fixDigit(hunterDamage)));
         }
     }
 
     private static void broadCast(Player hunter, PlayerList playerList, Component preyName, float preyHealth, double hunterDamage) {
         for (ServerPlayer player: playerList.getPlayers()) {
-            player.sendSystemMessage(Component.translatable( "%s刚刚击杀了血量上限高达%s的%s，造成的最高伤害已经达到%s！真是不可思议呀！", hunter.getName(), fixDigit(preyHealth), preyName ,fixDigit(hunterDamage)));
+            player.sendSystemMessage(Component.translatable( "broadcast.for_multiplayer.text", hunter.getName(), fixDigit(preyHealth), preyName ,fixDigit(hunterDamage)));
         }
     }
 

@@ -1,0 +1,4 @@
+{
+  "broadcast.for_single_player.text": "Wow, the %2s you've slayed have max HP up to %1s, and you dealt damage of %3s! You set your personal best this time!",
+  "broadcast.for_multiplayer.text": "Unbelievable! %1s has slayed %3s with max HP up to %2s, and dealt damage of %3s! Crushing victory!"
+}
