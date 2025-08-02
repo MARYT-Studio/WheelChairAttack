@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import world.maryt.wheelchair.Config;
 
 import static world.maryt.wheelchair_attack.util.TagUtils.getFloatNonNull;
 
@@ -17,6 +18,7 @@ import static world.maryt.wheelchair_attack.util.TagUtils.getFloatNonNull;
 public class HuntBroadcasting {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingDeath(LivingDeathEvent event) {
+        if (!Config.shouldNotifyPlayers) return;
         if (!(event.getEntity() instanceof Player)) {
             LivingEntity prey = event.getEntity();
             if (event.getSource().getEntity() != null && event.getSource().getEntity() instanceof Player player) {
